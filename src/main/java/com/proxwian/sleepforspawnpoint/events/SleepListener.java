@@ -4,13 +4,10 @@ import com.mojang.datafixers.util.Pair;
 import com.proxwian.sleepforspawnpoint.config.SleepConfig;
 import com.proxwian.sleepforspawnpoint.config.Values;
 import com.proxwian.sleepforspawnpoint.functions.Util;
-import java.io.File;
-import java.io.PrintWriter;
+
 import java.util.Objects;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -41,7 +38,6 @@ public class SleepListener {
         
         ServerPlayer p = (ServerPlayer) event.getPlayer();
         this.setPlayerRespawnPosition(p);
-        this.sendPlayerWakeMessage(p);
     }
 	
     @SubscribeEvent
@@ -52,7 +48,6 @@ public class SleepListener {
         event.getWorld().players().stream().filter(LivingEntity::isSleeping).toList().forEach((player) -> {
             ServerPlayer p = (ServerPlayer) player;
             this.setPlayerRespawnPosition(p);
-            this.sendPlayerWakeMessage(p);
         });
     }
     
@@ -64,15 +59,54 @@ public class SleepListener {
         if (!player.getLevel().dimensionType().bedWorks())
             return;
 
+        BlockPos firstBlockPos = player.blockPosition().immutable();
         BlockPos secondBlockPos = player.blockPosition();
+
         switch (Objects.requireNonNull(player.getBedOrientation())) {
             case NORTH -> secondBlockPos = player.blockPosition().offset(0,0,1);
             case WEST -> secondBlockPos = player.blockPosition().offset(1,0,0);
             case EAST -> secondBlockPos = player.blockPosition().offset(-1,0,0);
             case SOUTH -> secondBlockPos = player.blockPosition().offset(0,0,-1);
         }
+
+        if (!checkIsBed(player.getLevel(), firstBlockPos) || !checkIsBed(player.getLevel(), secondBlockPos))
+            return;
+
+        Pair<Level, Pair<BlockPos, BlockPos>> savedBed = RespawnListener.playerbeds.get(player.getName().getString().toLowerCase());
+
+        if (savedBed != null) {
+            Pair<BlockPos, BlockPos> savedBedPos = savedBed.getSecond();
+            if (savedBedPos != null && checkExistingPoint(savedBedPos.getFirst().immutable(), savedBedPos.getSecond().immutable(), firstBlockPos, secondBlockPos)) {
+                return;
+            }
+        }
+
         Util.setBedSpawn(player.level, player.getName().getString(), player.blockPosition(), secondBlockPos);
         player.setRespawnPosition(player.level.dimension(), player.blockPosition(), player.getYRot(), true, false);
+
+        this.sendPlayerWakeMessage(player);
+    }
+
+    private boolean checkIsBed(Level world, BlockPos blockPos) {
+        return world.getBlockState(blockPos).getBlock().getClass() == BedBlock.class;
+    }
+
+    private boolean checkExistingPoint(BlockPos firstOld, BlockPos secondOld, BlockPos firstNew, BlockPos secondNew) {
+        return (
+                firstOld.getX() == firstNew.getX()
+             && firstOld.getY() == firstNew.getY()
+             && firstOld.getZ() == firstNew.getZ()
+             && secondOld.getX() == secondNew.getX()
+             && secondOld.getY() == secondNew.getY()
+             && secondOld.getZ() == secondNew.getZ()
+        ) || (
+                firstOld.getX() == secondNew.getX()
+             && firstOld.getY() == secondNew.getY()
+             && firstOld.getZ() == secondNew.getZ()
+             && secondOld.getX() == firstNew.getX()
+             && secondOld.getY() == firstNew.getY()
+             && secondOld.getZ() == firstNew.getZ()
+        );
     }
     
     public static boolean canSetSpawn(Player player, BlockPos pos) {

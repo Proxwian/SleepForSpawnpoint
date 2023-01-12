@@ -102,13 +102,13 @@ public class Util {
         for (String fromplayername : fromplayernames) {
             if (RespawnListener.playerbeds.containsKey(fromplayername)) {
                 for (Level loopworld : RespawnListener.playerstorespawn.keySet()) {
-                    String campfirespawnfolder = getWorldPath((ServerLevel)loopworld) + BED_SPAWN_FOLDER_PATH + getSimpleDimensionString(loopworld);
-                    File dir = new File(campfirespawnfolder);
+                    String bedspawnfolder = getWorldPath((ServerLevel)loopworld) + BED_SPAWN_FOLDER_PATH + getSimpleDimensionString(loopworld);
+                    File dir = new File(bedspawnfolder);
                     dir.mkdirs();
 
                     String filename = fromplayername.toLowerCase() + SPAWN_FILE_SUFFIX;
                     try {
-                        try (PrintWriter writer = new PrintWriter(campfirespawnfolder + File.separator + filename, "UTF-8")) {
+                        try (PrintWriter writer = new PrintWriter(bedspawnfolder + File.separator + filename, "UTF-8")) {
                             writer.print("");
                         }
                     } catch (Exception e) {
