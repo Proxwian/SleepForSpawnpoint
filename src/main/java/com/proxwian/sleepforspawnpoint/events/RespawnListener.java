@@ -39,7 +39,7 @@ public class RespawnListener {
     @SubscribeEvent
     public void onWorldTick(WorldTickEvent e) {
         Level world = e.world;
-        if (world.isClientSide) {
+        if (world.isClientSide || !world.dimensionType().bedWorks()) {
             return;
         }
 
