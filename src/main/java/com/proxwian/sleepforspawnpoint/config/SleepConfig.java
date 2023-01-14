@@ -17,6 +17,8 @@ public class SleepConfig {
         public final BooleanValue sendMessageOnSpawnpointMissing;
         
         public final ConfigValue<? extends String> modBehavior;
+
+        public final ForgeConfigSpec.IntValue bedRange;
         
         public final ConfigValue<? extends String> customCreateMsg;
         public final ConfigValue<? extends String> customUnsetMsg;
@@ -31,6 +33,11 @@ public class SleepConfig {
             modBehavior = builder
                     .comment("WAKE (default) - sets spawn point on player wake in his bed, REST - sets spawn point in bed if player was in bed, DISABLE - disable bed spawnpoint set")
                     .define("modBehavior", "WAKE", o -> (o instanceof String));
+
+            bedRange = builder
+                    .comment("The maximum range at which a player can be respawn back to his bed.",
+                            "Default: 1024")
+                    .defineInRange("bedRange", 1024, 0, Integer.MAX_VALUE);
 
             builder.pop();
             

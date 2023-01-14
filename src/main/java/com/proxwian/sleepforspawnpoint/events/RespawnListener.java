@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent.WorldTickEvent;
@@ -56,6 +57,7 @@ public class RespawnListener {
                     Vec3 ts = new Vec3(respawnpos.getX() + 1.5, respawnpos.getY(), respawnpos.getZ() + 0.5);
 
                     serverplayer.teleportTo(serverworld, ts.x, ts.y, ts.z, player.getYRot(), player.getXRot());
+                    serverplayer.setRespawnPosition(player.level.dimension(), player.blockPosition(), player.getYRot(), true, false);
                 } else {
                     String playername = player.getName().toString();
                     playerbeds.remove(playername.toLowerCase());
@@ -78,18 +80,23 @@ public class RespawnListener {
 		
 	    String playername = player.getName().getString().toLowerCase();
         if (!playerbeds.containsKey(playername)) {
-                return;
+            return;
         }
 		
         Pair<Level, Pair<BlockPos, BlockPos>> pair = playerbeds.get(playername);
+        BlockPos spawn = pair.getSecond().getFirst().immutable();
+
+        if (player.blockPosition().distManhattan(new Vec3i(spawn.getX(), spawn.getY(), spawn.getZ())) > SleepConfig.SERVER.bedRange.get())
+            return;
+
         playerstorespawn.get(pair.getFirst()).add(new Pair<>(player, pair.getSecond().getFirst().immutable()));
     }
     
     @SubscribeEvent
-    public void onCampfireBreak(BlockEvent.BreakEvent e) {
+    public void onBedBreak(BlockEvent.BreakEvent e) {
         Level world = Util.getWorldIfInstanceOfAndNotRemote(e.getWorld());
         if (world == null) {
-                return;
+            return;
 	    }
 		
         BlockPos pos = e.getPos();
