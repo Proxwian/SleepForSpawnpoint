@@ -2,6 +2,7 @@ package com.proxwian.sleepforspawnpoint.config;
 
 import com.proxwian.sleepforspawnpoint.SleepForSpawnpoint;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec.IntValue;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -18,7 +19,7 @@ public class SleepConfig {
         
         public final ConfigValue<? extends String> modBehavior;
 
-        public final ForgeConfigSpec.IntValue bedRange;
+        public final IntValue bedRange;
         
         public final ConfigValue<? extends String> customCreateMsg;
         public final ConfigValue<? extends String> customUnsetMsg;

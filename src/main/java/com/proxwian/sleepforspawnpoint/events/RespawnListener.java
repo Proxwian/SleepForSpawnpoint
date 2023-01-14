@@ -51,15 +51,15 @@ public class RespawnListener {
 
             if (player instanceof ServerPlayer serverPlayer) {
                 if (world.getBlockState(respawnpos).getBlock() instanceof BedBlock) {
-                    ServerPlayer serverplayer = serverPlayer;
                     ServerLevel serverworld = (ServerLevel) world;
 
                     Vec3 ts = new Vec3(respawnpos.getX() + 1.5, respawnpos.getY(), respawnpos.getZ() + 0.5);
 
-                    serverplayer.teleportTo(serverworld, ts.x, ts.y, ts.z, player.getYRot(), player.getXRot());
-                    serverplayer.setRespawnPosition(player.level.dimension(), player.blockPosition(), player.getYRot(), true, false);
+                    serverPlayer.teleportTo(serverworld, ts.x, ts.y, ts.z, player.getYRot(), player.getXRot());
+                    serverPlayer.setRespawnPosition(player.level.dimension(), player.blockPosition(), player.getYRot(), true, false);
                 } else {
                     String playername = player.getName().toString();
+                    Util.checkForBedSpawnRemoval(world, playername, respawnpos);
                     playerbeds.remove(playername.toLowerCase());
                     if (SleepConfig.SERVER.sendMessageOnSpawnpointMissing.get()) {
                         Util.sendPlayerMessage(player, SleepConfig.SERVER.customMissingMsg.get());
