@@ -86,9 +86,17 @@ public class RespawnListener {
         Pair<Level, Pair<BlockPos, BlockPos>> pair = playerbeds.get(playername);
         BlockPos spawn = pair.getSecond().getFirst().immutable();
 
-        if (player.blockPosition().distManhattan(new Vec3i(spawn.getX(), spawn.getY(), spawn.getZ())) > SleepConfig.SERVER.bedRange.get()
-            && player.getLevel() == pair.getFirst())
+        if (player.getLevel() == pair.getFirst()
+           && player.blockPosition().distManhattan(new Vec3i(spawn.getX(), spawn.getY(), spawn.getZ())) > SleepConfig.SERVER.bedRange.get()
+           ) {
+
+            if (SleepConfig.SERVER.sendMessageOnSpawnpointFar.get()) {
+                Util.sendPlayerMessage(player, SleepConfig.SERVER.customFarMsg.get());
+            }
+
             return;
+        }
+
 
         playerstorespawn.get(pair.getFirst()).add(new Pair<>(player, pair.getSecond().getFirst().immutable()));
     }

@@ -16,6 +16,7 @@ public class SleepConfig {
         public final BooleanValue sendMessageOnSpawnpointCreate;
         public final BooleanValue sendMessageOnSpawnpointUnset;
         public final BooleanValue sendMessageOnSpawnpointMissing;
+        public final BooleanValue sendMessageOnSpawnpointFar;
         
         public final ConfigValue<? extends String> modBehavior;
 
@@ -24,6 +25,7 @@ public class SleepConfig {
         public final ConfigValue<? extends String> customCreateMsg;
         public final ConfigValue<? extends String> customUnsetMsg;
         public final ConfigValue<? extends String> customMissingMsg;
+        public final ConfigValue<? extends String> customFarMsg;
 
         Server(ForgeConfigSpec.Builder builder)
         {
@@ -65,6 +67,13 @@ public class SleepConfig {
             
             customMissingMsg = builder
                     .define("customMissingMsg", "Your bed is destroyed or unreachable.", o -> (o instanceof String));
+                       
+            sendMessageOnSpawnpointFar = builder
+                    .comment("Send custom message when spawn point is created")
+                    .define("sendMessageOnSpawnpointCreate", true);
+            
+            customFarMsg = builder
+                    .define("customFarMsg", "Your bed is too far away from you.", o -> (o instanceof String));
 
             builder.pop();
 
