@@ -59,7 +59,6 @@ public class RespawnListener {
                     Vec3 ts = new Vec3(respawnpos.getX() + 1.5, respawnpos.getY(), respawnpos.getZ() + 0.5);
 
                     serverPlayer.teleportTo(serverworld, ts.x, ts.y, ts.z, player.getYRot(), player.getXRot());
-                    serverPlayer.setRespawnPosition(player.level.dimension(), player.blockPosition(), player.getYRot(), true, false);
                 } else {
                     String playername = player.getName().toString();
                     Util.checkForBedSpawnRemoval(world, playername, respawnpos, false);

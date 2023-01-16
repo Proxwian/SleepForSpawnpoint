@@ -82,7 +82,6 @@ public class SleepListener {
         }
 
         Util.setBedSpawn(player.level, player.getName().getString(), firstBlockPos, secondBlockPos);
-        player.setRespawnPosition(player.level.dimension(), player.blockPosition(), player.getYRot(), true, false);
 
         this.sendPlayerWakeMessage(player);
     }
