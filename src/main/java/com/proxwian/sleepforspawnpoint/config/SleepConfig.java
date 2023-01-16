@@ -69,8 +69,8 @@ public class SleepConfig {
                     .define("customMissingMsg", "Your bed is destroyed or unreachable.", o -> (o instanceof String));
                        
             sendMessageOnSpawnpointFar = builder
-                    .comment("Send custom message when spawn point is created")
-                    .define("sendMessageOnSpawnpointCreate", true);
+                    .comment("Send custom message when spawn point is too far from player")
+                    .define("sendMessageOnSpawnpointFar", true);
             
             customFarMsg = builder
                     .define("customFarMsg", "Your bed is too far away from you.", o -> (o instanceof String));
