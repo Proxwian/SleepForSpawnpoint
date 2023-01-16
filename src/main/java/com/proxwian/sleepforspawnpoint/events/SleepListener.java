@@ -72,7 +72,7 @@ public class SleepListener {
         if (!checkIsBed(player.getLevel(), firstBlockPos) || !checkIsBed(player.getLevel(), secondBlockPos))
             return;
 
-        Pair<Level, Pair<BlockPos, BlockPos>> savedBed = RespawnListener.playerbeds.get(player.getName().getString().toLowerCase());
+        Pair<Level, Pair<BlockPos, BlockPos>> savedBed = RespawnListener.playerBeds.get(player.getName().getString().toLowerCase());
 
         if (savedBed != null) {
             Pair<BlockPos, BlockPos> savedBedPos = savedBed.getSecond();

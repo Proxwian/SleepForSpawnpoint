@@ -8,6 +8,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent.WorldTickEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import com.mojang.datafixers.util.Pair;
@@ -22,8 +23,10 @@ import net.minecraftforge.event.world.BlockEvent;
 
 public class RespawnListener {
     
-    public static HashMap<String, Pair<Level, Pair<BlockPos, BlockPos>>> playerbeds = new HashMap<>();
-    public static HashMap<Level, List<Pair<Player, BlockPos>>> playerstorespawn = new HashMap<>();
+    public static HashMap<String, Pair<Level, Pair<BlockPos, BlockPos>>> playerBeds = new HashMap<>();
+    public static HashMap<Level, List<Pair<Player, BlockPos>>> playersToRespawn = new HashMap<>();
+
+    public static List<Player> playersFarRespawn = new ArrayList<>();
     
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load e) {
@@ -33,7 +36,7 @@ public class RespawnListener {
             return;
         }
 
-        playerstorespawn.put(world, new ArrayList<>());
+        playersToRespawn.put(world, new ArrayList<>());
         Util.loadBedSpawnsFromWorld(world);
     }
     
@@ -44,8 +47,8 @@ public class RespawnListener {
             return;
         }
 
-        if (playerstorespawn.get(world).size() > 0) {
-            Pair<Player, BlockPos> pair = playerstorespawn.get(world).get(0);
+        if (playersToRespawn.get(world).size() > 0) {
+            Pair<Player, BlockPos> pair = playersToRespawn.get(world).get(0);
             Player player = pair.getFirst();
             BlockPos respawnpos = pair.getSecond();
 
@@ -59,15 +62,41 @@ public class RespawnListener {
                     serverPlayer.setRespawnPosition(player.level.dimension(), player.blockPosition(), player.getYRot(), true, false);
                 } else {
                     String playername = player.getName().toString();
-                    Util.checkForBedSpawnRemoval(world, playername, respawnpos);
-                    playerbeds.remove(playername.toLowerCase());
+                    Util.checkForBedSpawnRemoval(world, playername, respawnpos, false);
+                    playerBeds.remove(playername.toLowerCase());
                     if (SleepConfig.SERVER.sendMessageOnSpawnpointMissing.get()) {
                         Util.sendPlayerMessage(player, SleepConfig.SERVER.customMissingMsg.get());
                     }
                 }
             }
-            playerstorespawn.get(world).remove(0);
+            playersToRespawn.get(world).remove(0);
         }
+    }
+
+    @SubscribeEvent
+    public void onPlayerDeath(LivingDeathEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player))
+            return;
+
+        if (!player.getLevel().dimensionType().bedWorks())
+            return;
+
+        String playerName = player.getName().getString().toLowerCase();
+        if (!playerBeds.containsKey(playerName)) {
+            return;
+        }
+
+        Pair<Level, Pair<BlockPos, BlockPos>> pair = playerBeds.get(playerName);
+
+        BlockPos spawn = pair.getSecond().getFirst().immutable();
+
+        if (player.getLevel() != pair.getFirst())
+            return;
+
+        if (player.blockPosition().distManhattan(new Vec3i(spawn.getX(), spawn.getY(), spawn.getZ())) <= SleepConfig.SERVER.bedRange.get())
+            return;
+
+        playersFarRespawn.add(player);
     }
     
     @SubscribeEvent
@@ -79,26 +108,22 @@ public class RespawnListener {
         }
 		
 	    String playername = player.getName().getString().toLowerCase();
-        if (!playerbeds.containsKey(playername)) {
+        if (!playerBeds.containsKey(playername)) {
             return;
         }
-		
-        Pair<Level, Pair<BlockPos, BlockPos>> pair = playerbeds.get(playername);
-        BlockPos spawn = pair.getSecond().getFirst().immutable();
 
-        if (player.getLevel() == pair.getFirst()
-           && player.blockPosition().distManhattan(new Vec3i(spawn.getX(), spawn.getY(), spawn.getZ())) > SleepConfig.SERVER.bedRange.get()
-           ) {
-
+        if (playersFarRespawn.contains(player)) {
             if (SleepConfig.SERVER.sendMessageOnSpawnpointFar.get()) {
                 Util.sendPlayerMessage(player, SleepConfig.SERVER.customFarMsg.get());
             }
-
+            playersFarRespawn.remove(player);
             return;
         }
+		
+        Pair<Level, Pair<BlockPos, BlockPos>> pair = playerBeds.get(playername);
+        BlockPos spawnPos = pair.getSecond().getFirst().immutable();
 
-
-        playerstorespawn.get(pair.getFirst()).add(new Pair<>(player, pair.getSecond().getFirst().immutable()));
+        playersToRespawn.get(pair.getFirst()).add(new Pair<>(player, spawnPos));
     }
     
     @SubscribeEvent
@@ -111,13 +136,13 @@ public class RespawnListener {
         BlockPos pos = e.getPos();
         if (world.getBlockState(pos).getBlock() instanceof BedBlock) {
             Player player = e.getPlayer();
-            String playername = player.getName().getString().toLowerCase();
+            String playerName = player.getName().getString().toLowerCase();
 
-            if (Util.checkForBedSpawnRemoval(world, playername, pos)) {
+            if (Util.checkForBedSpawnRemoval(world, playerName, pos, true)) {
                 if (SleepConfig.SERVER.sendMessageOnSpawnpointCreate.get()) {
                     Util.sendPlayerMessage(player, SleepConfig.SERVER.customUnsetMsg.get());
                 }
             }
-	}
+	    }
     }
 }

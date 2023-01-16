@@ -63,7 +63,7 @@ public class Util {
                         
                         BlockPos spawnpos = new BlockPos(x, y, z);
                         BlockPos spawnpos2 = new BlockPos(x2, y2, z2);
-                        RespawnListener.playerbeds.put(playername, new Pair<>(world, new Pair<>(spawnpos.immutable(), spawnpos2.immutable())));
+                        RespawnListener.playerBeds.put(playername, new Pair<>(world, new Pair<>(spawnpos.immutable(), spawnpos2.immutable())));
                     }
                 }
             }
@@ -85,14 +85,14 @@ public class Util {
             return false;
         }
 
-        RespawnListener.playerbeds.put(playername.toLowerCase(), new Pair<>(world, new Pair<>(bedpos.immutable(), secondpos.immutable())));
+        RespawnListener.playerBeds.put(playername.toLowerCase(), new Pair<>(world, new Pair<>(bedpos.immutable(), secondpos.immutable())));
         return true;
     }
     
-    public static boolean checkForBedSpawnRemoval(Level world, String playername, BlockPos bedpos) {
+    public static boolean checkForBedSpawnRemoval(Level world, String playername, BlockPos bedpos, Boolean message) {
         List<String> fromplayernames = new ArrayList<>();
-        for (String pname : RespawnListener.playerbeds.keySet()) {
-            Pair<Level, Pair<BlockPos, BlockPos>> pair = RespawnListener.playerbeds.get(pname);
+        for (String pname : RespawnListener.playerBeds.keySet()) {
+            Pair<Level, Pair<BlockPos, BlockPos>> pair = RespawnListener.playerBeds.get(pname);
             if (bedpos.equals(pair.getSecond().getFirst()) || bedpos.equals(pair.getSecond().getSecond())) {
                 fromplayernames.add(pname);
             }
@@ -100,8 +100,8 @@ public class Util {
 		
         boolean removed = false;
         for (String fromplayername : fromplayernames) {
-            if (RespawnListener.playerbeds.containsKey(fromplayername)) {
-                for (Level loopworld : RespawnListener.playerstorespawn.keySet()) {
+            if (RespawnListener.playerBeds.containsKey(fromplayername)) {
+                for (Level loopworld : RespawnListener.playersToRespawn.keySet()) {
                     String bedspawnfolder = getWorldPath((ServerLevel)loopworld) + BED_SPAWN_FOLDER_PATH + getSimpleDimensionString(loopworld);
                     File dir = new File(bedspawnfolder);
                     dir.mkdirs();
@@ -116,10 +116,10 @@ public class Util {
                     }
                 }
 				
-                RespawnListener.playerbeds.remove(fromplayername);
+                RespawnListener.playerBeds.remove(fromplayername);
                 removed = true;
 
-                if (SleepConfig.SERVER.sendMessageOnSpawnpointUnset.get()) {
+                if (message && SleepConfig.SERVER.sendMessageOnSpawnpointUnset.get()) {
                     if (fromplayername.equalsIgnoreCase(playername)) {
                         continue;
                     }
@@ -181,7 +181,7 @@ public class Util {
     
     public static boolean isNumeric(String string) {
         if (string == null) {
-                return false;
+            return false;
 	    }
         try {
             Double.parseDouble(string);
