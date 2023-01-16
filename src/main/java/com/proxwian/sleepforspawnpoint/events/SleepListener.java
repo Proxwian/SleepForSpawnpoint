@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.event.entity.player.PlayerSetSpawnEvent;
 import net.minecraftforge.event.entity.player.SleepingTimeCheckEvent;
-import net.minecraftforge.event.world.SleepFinishedTimeEvent;
+import net.minecraftforge.event.level.SleepFinishedTimeEvent;
 
 public class SleepListener {
     
@@ -33,10 +33,10 @@ public class SleepListener {
     
     @SubscribeEvent
     public void onSleepingCheckEvent(SleepingTimeCheckEvent event) {
-        if (!SleepConfig.SERVER.modBehavior.get().equals(Values.Modes.REST) 
-                || event.getPlayer().getSleepTimer() != 2) return;
-        
-        ServerPlayer p = (ServerPlayer) event.getPlayer();
+        if (!SleepConfig.SERVER.modBehavior.get().equals(Values.Modes.REST)
+                || !(event.getEntity() instanceof ServerPlayer p)
+                || event.getEntity().getSleepTimer() != 2) return;
+
         this.setPlayerRespawnPosition(p);
     }
 	
@@ -45,7 +45,7 @@ public class SleepListener {
         if (!SleepConfig.SERVER.modBehavior.get().equals(Values.Modes.WAKE))
             return;
         
-        event.getWorld().players().stream().filter(LivingEntity::isSleeping).toList().forEach((player) -> {
+        event.getLevel().players().stream().filter(LivingEntity::isSleeping).toList().forEach((player) -> {
             ServerPlayer p = (ServerPlayer) player;
             this.setPlayerRespawnPosition(p);
         });
@@ -56,20 +56,20 @@ public class SleepListener {
     }
     
     private void setPlayerRespawnPosition(ServerPlayer player) {
-        if (!player.getLevel().dimensionType().bedWorks())
+        if (!player.level.dimensionType().bedWorks())
             return;
 
-        BlockPos firstBlockPos = player.blockPosition().immutable();
-        BlockPos secondBlockPos = player.blockPosition();
+        BlockPos firstBlockPos = player.m_20183_().immutable();
+        BlockPos secondBlockPos = player.m_20183_();
 
         switch (Objects.requireNonNull(player.getBedOrientation())) {
-            case NORTH -> secondBlockPos = player.blockPosition().offset(0,0,1);
-            case WEST -> secondBlockPos = player.blockPosition().offset(1,0,0);
-            case EAST -> secondBlockPos = player.blockPosition().offset(-1,0,0);
-            case SOUTH -> secondBlockPos = player.blockPosition().offset(0,0,-1);
+            case NORTH -> secondBlockPos = player.m_20183_().m_7918_(0,0,1);
+            case WEST -> secondBlockPos = player.m_20183_().m_7918_(1,0,0);
+            case EAST -> secondBlockPos = player.m_20183_().m_7918_(-1,0,0);
+            case SOUTH -> secondBlockPos = player.m_20183_().m_7918_(0,0,-1);
         }
 
-        if (!checkIsBed(player.getLevel(), firstBlockPos) || !checkIsBed(player.getLevel(), secondBlockPos))
+        if (!checkIsBed(player.level, firstBlockPos) || !checkIsBed(player.level, secondBlockPos))
             return;
 
         Pair<Level, Pair<BlockPos, BlockPos>> savedBed = RespawnListener.playerBeds.get(player.getName().getString().toLowerCase());
@@ -109,9 +109,9 @@ public class SleepListener {
     }
     
     public static boolean canSetSpawn(Player player, BlockPos pos) {
-        final Level level = player.getLevel();
+        final Level level = player.level;
 
-        if (pos != null && !player.getLevel().isClientSide) {
+        if (pos != null && !player.level.isClientSide) {
             final Block block = level.getBlockState(pos).getBlock();
             return !(block instanceof BedBlock);
         }

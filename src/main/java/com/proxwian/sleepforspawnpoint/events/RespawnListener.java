@@ -7,9 +7,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.TickEvent.WorldTickEvent;
+import net.minecraftforge.event.TickEvent.LevelTickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import com.mojang.datafixers.util.Pair;
 import com.proxwian.sleepforspawnpoint.config.SleepConfig;
@@ -19,7 +20,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerRespawnEvent;
-import net.minecraftforge.event.world.BlockEvent;
 
 public class RespawnListener {
     
@@ -29,8 +29,8 @@ public class RespawnListener {
     public static List<Player> playersFarRespawn = new ArrayList<>();
     
     @SubscribeEvent
-    public void onWorldLoad(WorldEvent.Load e) {
-	    Level world = Util.getWorldIfInstanceOfAndNotRemote(e.getWorld());
+    public void onWorldLoad(LevelEvent.Load e) {
+	    Level world = Util.getWorldIfInstanceOfAndNotRemote(e.getLevel());
         if (world == null
             || !world.dimensionType().bedWorks()) {
             return;
@@ -41,8 +41,8 @@ public class RespawnListener {
     }
     
     @SubscribeEvent
-    public void onWorldTick(WorldTickEvent e) {
-        Level world = e.world;
+    public void onWorldTick(LevelTickEvent e) {
+        Level world = e.level;
         if (world.isClientSide || !world.dimensionType().bedWorks()) {
             return;
         }
@@ -77,7 +77,7 @@ public class RespawnListener {
         if (!(event.getEntity() instanceof ServerPlayer player))
             return;
 
-        if (!player.getLevel().dimensionType().bedWorks())
+        if (!player.level.dimensionType().bedWorks())
             return;
 
         String playerName = player.getName().getString().toLowerCase();
@@ -89,10 +89,10 @@ public class RespawnListener {
 
         BlockPos spawn = pair.getSecond().getFirst().immutable();
 
-        if (player.getLevel() != pair.getFirst())
+        if (player.level != pair.getFirst())
             return;
 
-        if (player.blockPosition().distManhattan(new Vec3i(spawn.getX(), spawn.getY(), spawn.getZ())) <= SleepConfig.SERVER.bedRange.get())
+        if (player.m_20183_().distManhattan(new Vec3i(spawn.getX(), spawn.getY(), spawn.getZ())) <= SleepConfig.SERVER.bedRange.get())
             return;
 
         playersFarRespawn.add(player);
@@ -127,7 +127,7 @@ public class RespawnListener {
     
     @SubscribeEvent
     public void onBedBreak(BlockEvent.BreakEvent e) {
-        Level world = Util.getWorldIfInstanceOfAndNotRemote(e.getWorld());
+        Level world = Util.getWorldIfInstanceOfAndNotRemote(e.getLevel());
         if (world == null) {
             return;
 	    }

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -149,12 +149,12 @@ public class Util {
     }
     
     public static String getWorldPath(ServerLevel ServerLevel) {
-        String worldpath = ServerLevel.getServer().getWorldPath(LevelResource.ROOT).toString();
+        String worldpath = ServerLevel.m_7654_().getWorldPath(LevelResource.ROOT).toString();
         return worldpath.substring(0, worldpath.length() - 2);
     }
     
     public static void sendPlayerMessage(Player player, String message) {
-        player.displayClientMessage(new TextComponent(message), false);
+        player.displayClientMessage(Component.m_237113_(message), false);
     }
     
     public static Player matchPlayer(Level world, String other) {
