@@ -56,7 +56,7 @@ public class RespawnListener {
                 if (world.getBlockState(respawnpos).getBlock() instanceof BedBlock) {
                     ServerLevel serverworld = (ServerLevel) world;
 
-                    Vec3 ts = new Vec3(respawnpos.getX() + 1.5, respawnpos.getY(), respawnpos.getZ() + 0.5);
+                    Vec3 ts = new Vec3(respawnpos.getX(), respawnpos.getY() + 1.0, respawnpos.getZ());
 
                     serverPlayer.teleportTo(serverworld, ts.x, ts.y, ts.z, player.getYRot(), player.getXRot());
                 } else {
