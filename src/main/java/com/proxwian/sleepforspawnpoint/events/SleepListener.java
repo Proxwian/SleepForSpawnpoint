@@ -8,6 +8,7 @@ import com.proxwian.sleepforspawnpoint.functions.Util;
 import java.util.Objects;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -26,6 +27,8 @@ public class SleepListener {
     @SubscribeEvent
     public void onPlayerSetSpawn(final PlayerSetSpawnEvent event) {
         Player p = (Player) event.getEntity();
+        if (event.isForced())
+            return;
         if (!canSetSpawn(p, event.getNewSpawn())) {
             event.setCanceled(true);
         }
@@ -111,11 +114,17 @@ public class SleepListener {
     public static boolean canSetSpawn(Player player, BlockPos pos) {
         final Level level = player.getLevel();
 
-        if (pos != null && !player.getLevel().isClientSide) {
+        if (pos == null)
+            return false;
+
+        if (player.blockPosition().distManhattan(new Vec3i(pos.getX(), pos.getY(), pos.getZ())) > 16)
+            return false;
+
+        if (!player.getLevel().isClientSide) {
             final Block block = level.getBlockState(pos).getBlock();
             return !(block instanceof BedBlock);
         }
-        return true;
+        return false;
     }
 
 }
